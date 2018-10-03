@@ -8,12 +8,13 @@ struct matchOptions {
     std::string pattern_file_path = "";
 };
 
-const char* const short_opts = "ce:p:a:";
+const char* const short_opts = "tce:p:a:h";
 const option long_opts[] = {
     {"count", no_argument, nullptr, 'c'},
     {"edit", required_argument, nullptr, 'e'},
     {"pattern", required_argument, nullptr, 'p'},
     {"algorithm", required_argument, nullptr, 'a'},
+    {"time", no_argument, nullptr, 't'},
 };
 
 struct Parser {
@@ -21,8 +22,9 @@ struct Parser {
     char** argv;
     matchOptions opts;
     bool help = false;
+    bool time_it = false;
 
-    int parse() {
+    void parse() {
         int opt = 0;
         
         while(opt != -1) {
@@ -40,10 +42,12 @@ struct Parser {
                 case 'a':
                     opts.algorithm = std::string(optarg);
                     break;
+                case 't':
+                    time_it = true;
+                    break;
                 default:
                     help = true;
             }
         }
-        return 0;
     }
 };

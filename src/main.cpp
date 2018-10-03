@@ -1,5 +1,6 @@
 #include <iostream>
 #include "parser.h"
+#include "search.h"
 
 int main(int argc, char* argv[]) {
     Parser p;
@@ -7,7 +8,7 @@ int main(int argc, char* argv[]) {
     p.argv=argv;
     p.parse();
     if (p.help) {
-        
+
     } else {
 
     }
