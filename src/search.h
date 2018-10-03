@@ -5,12 +5,16 @@
 struct Search {
     int count = 0;
     std::vector<std::string> answers;
-// Ukkonen
+};
 
-// Shift-Or
+struct Ukkonen: Search{
 
-// Aho-Corasic
+};
 
-// Maybe other?
+struct ShiftOr: Search{
+
+};
+
+struct AhoCorasick: Search{
 
 };
