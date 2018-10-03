@@ -5,6 +5,12 @@
 struct Search {
     int count = 0;
     std::vector<std::string> answers;
+// Ukkonen
 
-    
+// Shift-Or
+
+// Aho-Corasic
+
+// Maybe other?
+
 };
