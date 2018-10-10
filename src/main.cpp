@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     if (p.help) {
         
     } else {
-       Ukkonen ukk;
+       ShiftOr ukk;
         for(auto pattern: p.patts) {
             ukk.setPattern(pattern, p.opts.edit_distance);
             for(auto file: p.files)

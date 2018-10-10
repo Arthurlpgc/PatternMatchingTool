@@ -3,6 +3,7 @@
 #include <map>
 #include <queue>
 #include <set>
+#include <algorithm>
 
 #define add_answer(X,Y) answers.push_back(X); count += Y;
 struct Search {
@@ -107,6 +108,7 @@ struct ShiftOr: Search {
     std::vector< std::vector<long> > masks;
     std::vector<long> mask;
     std::string pat;
+    int size;
 
     inline void shiftI(std::vector<long>& m) {
         m[0] <<= 1;
@@ -131,7 +133,7 @@ struct ShiftOr: Search {
     void setPattern(std::string s, int err = 0){
         masks.assign(256, std::vector< long >() );
         
-        int size = ((s.size() - 1) >> 6) + 1;
+        size = ((s.size() - 1) >> 6) + 1;
         mask.assign(size, -1);
         mask[size - 1] -= 1;
 
@@ -139,7 +141,7 @@ struct ShiftOr: Search {
 
         for(int i=0, len=s.size() ; i<len ; i++) {
             if(masks[s[i]].size() == 0) {
-                masks[s[i]].assing(size, -1);
+                masks[s[i]].assign(size, -1);
             }
             andI(masks[s[i]], mask);
             shiftI(mask);
@@ -154,12 +156,12 @@ struct ShiftOr: Search {
         for(int i=0, lenI=s.size() ; i<lenI ; i++) {
             int counter = 0;
             for(int j=0, lenJ=s[i].size() ; j<lenJ ; j++) {
-                if(masks[txt[i]].size() == 0) {
+                if(masks[s[i][j]].size() == 0) {
                     shiftI(match);
                     orI(match, mask);
                 } else {
                     shiftI(match);
-                    orI(match, masks[txt[i]]);
+                    orI(match, masks[s[i][j]]);
                 }
                 if(~match[0] & test){
                     counter++;
@@ -168,7 +170,7 @@ struct ShiftOr: Search {
             if(counter) {
                 add_answer(s[i], counter);
             }
-            match.assign(size, -1);
+            std::fill(match.begin(), match.end(), -1);
         }
     }
 };
