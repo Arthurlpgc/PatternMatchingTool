@@ -8,8 +8,8 @@
 struct Search {
     int count = 0;
     std::vector<std::string> answers;
-    virtual void setPattern(std::string s, int err = 0);
-    virtual void search(const std::vector<std::string>& s);
+    void setPattern(std::string s, int err = 0);
+    void search(const std::vector<std::string>& s);
 };
 
 typedef int ukkState;
@@ -22,8 +22,8 @@ struct Ukkonen: Search {
     int pattern_size;
     std::vector<int> patt_as_int;
 
-    std::vector<int> make_transition(const std::vector<int>& base, int chr, int err) {
-        std::vector<int> state = std::vector<int>(0, pattern_size + 1);
+    std::vector<int> make_transition(std::vector<int> base, int chr, int err) {
+        std::vector<int> state = std::vector<int>(pattern_size + 1, 0);
         for(int i = 1; i <= pattern_size; i++) {
             state[i] = std::min(std::min(base[i] + 1, base[i-1] + (chr != patt_as_int[i-1] ? 1 : 0)), std::min(err+1, state[i-1]+1));
         }
@@ -78,12 +78,34 @@ struct Ukkonen: Search {
         }
 
     }
+
+    int searchLine(const std::string& s) {
+        int state = 1, occ = 0;
+        if(F.count(state)){
+            occ++;
+        }
+        for(auto c: s){
+            state = delta[ukkStateTransition(state, keyMap[c])];
+            if(F.count(state)){
+                occ++;
+            }
+        }
+        return occ;
+    }
+
+    void search(const std::vector<std::string>& vs) {
+        for(auto s: vs){
+            auto cnt = searchLine(s);
+            if(cnt) 
+                add_answer(s, cnt);
+        }
+    }
 };
 
-struct ShiftOr: Search{
+// struct ShiftOr: Search{
 
-};
+// };
 
-struct AhoCorasick: Search{
+// struct AhoCorasick: Search{
 
-};
+// };
