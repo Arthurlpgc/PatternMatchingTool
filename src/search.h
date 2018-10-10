@@ -8,8 +8,8 @@
 struct Search {
     int count = 0;
     std::vector<std::string> answers;
-    virtual void setPattern(std::string s, int err = 0);
-    virtual void search(const std::vector<std::string>& s);
+    void setPattern(std::string s, int err = 0);
+    void search(const std::vector<std::string>& s);
 };
 
 typedef int ukkState;
@@ -80,8 +80,75 @@ struct Ukkonen: Search {
     }
 };
 
-struct ShiftOr: Search{
+struct ShiftOr: Search {
+    const long MSB = 0x8000000000000000;
+    std::vector< std::vector<long> > masks;
+    std::vector<long> mask;
+    std::string pat;
 
+    inline void shiftI(std::vector<long>& m) {
+        m[0] <<= 1;
+        for(int a=1, len=m.size() ; a<len ; a++) {
+            m[a-1] |= (m[a] & MSB ? 1 : 0);
+            m[a] <<= 1;
+        }
+    }
+
+    inline void orI(std::vector<long>& m, std::vector<long>& n) {
+        for(int a=0, len=m.size() ; a<len ; a++) {
+            m[a] |= n[a];
+        }
+    }
+
+    inline void andI(std::vector<long>& m, std::vector<long>& n) {
+        for(int a=0, len=m.size() ; a<len ; a++) {
+            m[a] &= n[a];
+        }
+    }
+
+    void setPattern(std::string s, int err = 0){
+        masks.assign(256, std::vector< long >() );
+        
+        int size = ((s.size() - 1) >> 6) + 1;
+        mask.assign(size, -1);
+        mask[size - 1] -= 1;
+
+        pat = s;
+
+        for(int i=0, len=s.size() ; i<len ; i++) {
+            if(masks[s[i]].size() == 0) {
+                masks[s[i]].assing(size, -1);
+            }
+            andI(masks[s[i]], mask);
+            shiftI(mask);
+            mask[size - 1] |= 1;
+        }
+    }
+
+    void search(const std::vector<std::string>& s) {
+        long test = 1 << ((pat.size() - 1) % 64);
+        std::vector<long> match(size, -1);
+
+        for(int i=0, lenI=s.size() ; i<lenI ; i++) {
+            int counter = 0;
+            for(int j=0, lenJ=s[i].size() ; j<lenJ ; j++) {
+                if(masks[txt[i]].size() == 0) {
+                    shiftI(match);
+                    orI(match, mask);
+                } else {
+                    shiftI(match);
+                    orI(match, masks[txt[i]]);
+                }
+                if(~match[0] & test){
+                    counter++;
+                }
+            }
+            if(counter) {
+                add_answer(s[i], counter);
+            }
+            match.assing(size, -1);
+        }
+    }
 };
 
 struct AhoCorasick: Search{
