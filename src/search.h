@@ -2,7 +2,6 @@
 #include <string>
 #include <map>
 #include <queue>
-#include <math>
 #include <set>
 
 #define add_answer(X,Y) answers.push_back(X); count += Y;
@@ -26,7 +25,7 @@ struct Ukkonen: Search {
     std::vector<int> make_transition(const std::vector<int>& base, int chr, int err) {
         std::vector<int> state = std::vector<int>(0, pattern_size + 1);
         for(int i = 1; i <= pattern_size; i++) {
-            state[i] = min(min(base[i] + 1, base[i-1] + (chr != patt_as_int[i-1] ? 1 : 0)),min(err+1, state[i-1]+1));
+            state[i] = std::min(std::min(base[i] + 1, base[i-1] + (chr != patt_as_int[i-1] ? 1 : 0)), std::min(err+1, state[i-1]+1));
         }
         return state;
     }
@@ -37,7 +36,6 @@ struct Ukkonen: Search {
         pattern_size = pattern.size();
         F.clear();
         delta.clear();
-        keyMap.clear();
 
         int c_id = 1;
 
