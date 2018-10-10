@@ -9,6 +9,8 @@
 struct Search {
     int count = 0;
     std::vector<std::string> answers;
+    virtual void setPattern(std::string s, int err = 0);
+    virtual void search(const std::vector<std::string>& s);
 };
 
 typedef int ukkState;
@@ -16,7 +18,7 @@ typedef std::pair<ukkState, int> ukkStateTransition;
 struct Ukkonen: Search {
     std::set<ukkState> F;
     std::map<ukkStateTransition, ukkState> delta;
-    std::map<char, int> keyMap;
+    int keyMap[256];
     std::string pattern;
     int pattern_size;
     std::vector<int> patt_as_int;
@@ -30,6 +32,7 @@ struct Ukkonen: Search {
     }
 
     void setPattern(std::string s, int err = 0) {
+        memset(keyMap, 0, sizeof keyMap);
         pattern = s;
         pattern_size = pattern.size();
         F.clear();
@@ -60,13 +63,19 @@ struct Ukkonen: Search {
             int now = q.front();
             q.pop();
             state = stateMap[now];
-            for(int i = 0; i < c_id; i++){ 
+            for(int i = 0; i < c_id; i++) { 
                 auto next_state = make_transition(state, i, err);
                 int next_state_id = revStateMap[next_state];
-                if(!next_state_id) { 
+                if(!next_state_id) {
                     revStateMap[next_state] = next_free_id;
-                    stateMap[next_free_id++] = next_state;
+                    stateMap[next_free_id] = next_state;
+                    next_state_id = next_free_id++;
+                    q.push(next_state_id);
                 }
+                if(next_state[pattern_size] <= err) {
+                    F.insert(next_state_id);
+                }
+                delta[ukkStateTransition(now, i)] = next_state_id;
             }
         }
 
