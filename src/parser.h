@@ -24,11 +24,38 @@ struct Parser {
     char** argv;
     int error = 0;
     std::vector<std::string> patts;
-    std::vector<std::string> file_names;
-    std::vector<std::vector<std::string> > files;
+    std::queue<std::string> file_names;
+    std::queue<std::string> used_file_names;
+    std::ifstream* current_file = NULL;
     matchOptions opts;
     bool help = false;
     bool time_it = false;
+
+    std::string next_line(){
+        if(current_file != NULL && current_file->eof()){
+            current_file->close();
+            current_file = NULL;
+        }
+        if(current_file == NULL) {
+            current_file = new std::ifstream();
+            current_file->open(file_names.front());
+            used_file_names.push(file_names.front());
+            file_names.pop();
+        }
+        std::string line;
+        getline(*current_file, line);
+        return line;
+    }
+
+    bool has_next_line(){
+        bool ret = false;
+        if (!file_names.empty()){
+            ret = true;
+        } else if (current_file == NULL) {
+            ret = false;
+        } else ret = !current_file->eof();
+        return ret;
+    }
 
     void parse() {
         int opt = 0;
@@ -72,15 +99,7 @@ struct Parser {
         }
         while(ind < argc) {
             std::string file_name = std::string(argv[ind++]);
-            std::vector<std::string> file;
-            std::ifstream fin;
-            fin.open(file_name);
-            std::string line;
-            while(getline(fin, line)) {
-                file.push_back(line);
-            }
-            files.push_back(file);
-            fin.close();
+            file_names.push(file_name);
         }
     }
 };

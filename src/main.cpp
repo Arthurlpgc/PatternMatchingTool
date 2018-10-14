@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include "parser.h"
 #include "search.h"
 
 int main(int argc, char* argv[]) {
@@ -25,8 +24,7 @@ int main(int argc, char* argv[]) {
         }
         for(auto pattern: p.patts) {
             search->setPattern(pattern, p.opts.edit_distance);
-            for(auto file: p.files)
-                search->search(file);
+            search->search(&p);
             if(p.opts.count) {
                 std::cout << search->count << std::endl;
             }else {

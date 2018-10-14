@@ -4,13 +4,14 @@
 #include <queue>
 #include <set>
 #include <algorithm>
+#include "parser.h"
 
-#define add_answer(X,Y) answers.push_back(X); count += Y;
+#define add_answer(X,Y) answers.push_back(X); count += Y; 
 struct Search {
     int count = 0;
     std::vector<std::string> answers;
     virtual void setPattern(std::string s, int err = 0) = 0;
-    virtual void search(const std::vector<std::string>& s) = 0;
+    virtual void search(Parser* s) = 0;
 };
 
 typedef int ukkState;
@@ -94,8 +95,9 @@ struct Ukkonen: Search {
         return occ;
     }
 
-    void search(const std::vector<std::string>& vs) override {
-        for(auto s: vs){
+    void search(Parser* vs) override {
+        while(vs->has_next_line()){
+            auto s = vs->next_line();
             auto cnt = searchLine(s);
             if(cnt) 
                 add_answer(s, cnt);
@@ -149,26 +151,28 @@ struct ShiftOr: Search {
         }
     }
 
-    void search(const std::vector<std::string>& s) override {
+    void search(Parser* parser) override {
         long test = 1 << ((pat.size() - 1) % 64);
         std::vector<long> match(size, -1);
 
-        for(int i=0, lenI=s.size() ; i<lenI ; i++) {
+        for(; parser->has_next_line() ; ) {
+            auto s = parser->next_line();
             int counter = 0;
-            for(int j=0, lenJ=s[i].size() ; j<lenJ ; j++) {
-                if(masks[s[i][j]].size() == 0) {
+            for(int j=0, lenJ=s.size() ; j<lenJ ; j++) {
+                if(masks[s[j]].size() == 0) {
                     shiftI(match);
                     orI(match, mask);
                 } else {
                     shiftI(match);
-                    orI(match, masks[s[i][j]]);
+                    orI(match, masks[s[j]]);
                 }
                 if(~match[0] & test){
                     counter++;
                 }
             }
+
             if(counter) {
-                add_answer(s[i], counter);
+                add_answer(s, counter);
             }
             std::fill(match.begin(), match.end(), -1);
         }
