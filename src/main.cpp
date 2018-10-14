@@ -14,15 +14,23 @@ int main(int argc, char* argv[]) {
     if (p.help) {
         
     } else {
-       ShiftOr ukk;
+        Search* search;
+        if(p.opts.algorithm == "None" || p.opts.algorithm == "Ukkonen"){
+                search = new Ukkonen();
+        } else if (p.opts.algorithm == "ShiftOr") {
+                search = new ShiftOr();
+        } else {
+            std::cerr << "Invalid algorithm";
+            return -1;
+        }
         for(auto pattern: p.patts) {
-            ukk.setPattern(pattern, p.opts.edit_distance);
+            search->setPattern(pattern, p.opts.edit_distance);
             for(auto file: p.files)
-                ukk.search(file);
+                search->search(file);
             if(p.opts.count) {
-                std::cout << ukk.count << std::endl;
+                std::cout << search->count << std::endl;
             }else {
-                for (auto answer: ukk.answers)
+                for (auto answer: search->answers)
                     std::cout << answer << std::endl;
             }
         }

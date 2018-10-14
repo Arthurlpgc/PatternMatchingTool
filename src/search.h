@@ -9,8 +9,8 @@
 struct Search {
     int count = 0;
     std::vector<std::string> answers;
-    void setPattern(std::string s, int err = 0);
-    void search(const std::vector<std::string>& s);
+    virtual void setPattern(std::string s, int err = 0) = 0;
+    virtual void search(const std::vector<std::string>& s) = 0;
 };
 
 typedef int ukkState;
@@ -31,7 +31,7 @@ struct Ukkonen: Search {
         return state;
     }
 
-    void setPattern(std::string s, int err = 0) {
+    void setPattern(std::string s, int err = 0) override {
         memset(keyMap, 0, sizeof keyMap);
         pattern = s;
         pattern_size = pattern.size();
@@ -94,7 +94,7 @@ struct Ukkonen: Search {
         return occ;
     }
 
-    void search(const std::vector<std::string>& vs) {
+    void search(const std::vector<std::string>& vs) override {
         for(auto s: vs){
             auto cnt = searchLine(s);
             if(cnt) 
@@ -130,7 +130,7 @@ struct ShiftOr: Search {
         }
     }
 
-    void setPattern(std::string s, int err = 0){
+    void setPattern(std::string s, int err = 0) override {
         masks.assign(256, std::vector< long >() );
         
         size = ((s.size() - 1) >> 6) + 1;
@@ -149,7 +149,7 @@ struct ShiftOr: Search {
         }
     }
 
-    void search(const std::vector<std::string>& s) {
+    void search(const std::vector<std::string>& s) override {
         long test = 1 << ((pat.size() - 1) % 64);
         std::vector<long> match(size, -1);
 
