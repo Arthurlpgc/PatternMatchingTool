@@ -47,14 +47,11 @@ struct Parser {
         return line;
     }
 
-    bool has_next_line(){
-        bool ret = false;
+    inline bool has_next_line(){
         if (!file_names.empty()){
-            ret = true;
-        } else if (current_file == NULL) {
-            ret = false;
-        } else ret = !current_file->eof();
-        return ret;
+            return true;
+        }
+        return current_file != NULL && !current_file->eof();
     }
 
     void parse() {

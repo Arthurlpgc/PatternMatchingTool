@@ -29,9 +29,6 @@ int main(int argc, char* argv[]) {
             search->search(&p);
             if(p.opts.count) {
                 std::cout << search->count << std::endl;
-            }else {
-                for (auto answer: search->answers)
-                    std::cout << answer << std::endl;
             }
         }
     }
