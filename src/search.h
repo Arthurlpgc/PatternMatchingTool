@@ -14,7 +14,6 @@ struct Search {
 };
 
 typedef int ukkState;
-typedef std::pair<ukkState, int> ukkStateTransition;
 struct Ukkonen: Search {
     std::set<ukkState> F;
     std::map<ukkState, ukkState> delta[256];
@@ -22,8 +21,7 @@ struct Ukkonen: Search {
     std::string pattern;
     int pattern_size;
     std::vector<int> patt_as_int;
-
-    std::vector<int> make_transition(std::vector<int> base, int chr, int err) {
+    std::vector<int> make_transition(const std::vector<int>& base, int chr, int err) {
         std::vector<int> state = std::vector<int>(pattern_size + 1, 0);
         for(int i = 1; i <= pattern_size; i++) {
             state[i] = std::min(std::min(base[i] + 1, base[i-1] + (chr != patt_as_int[i-1] ? 1 : 0)), std::min(err+1, state[i-1]+1));
@@ -41,7 +39,7 @@ struct Ukkonen: Search {
         int c_id = 1;
 
         std::vector<int> state;
-        for(int i = 0; i <= s.length(); i++) {
+        for(int i = 0, sze = s.length(); i <= sze; i++) {
             state.push_back(i);
             if(i < s.length()) {
                 if(!keyMap[s[i]]) {
