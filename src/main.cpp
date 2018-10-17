@@ -18,6 +18,8 @@ int main(int argc, char* argv[]) {
                 search = new Ukkonen();
         } else if (p.opts.algorithm == "ShiftOr") {
                 search = new ShiftOr();
+        } else if (p.opts.algorithm == "WuManber") {
+                search = new WuManber();
         } else {
             std::cerr << "Invalid algorithm";
             return -1;

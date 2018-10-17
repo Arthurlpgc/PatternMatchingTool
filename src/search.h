@@ -178,9 +178,75 @@ struct ShiftOr: Search {
     }
 };
 
-// struct ShiftOr: Search{
+struct WuManber: ShiftOr {
+    int dist;
 
-// };
+    void setPattern(std::string s, int err = 0) override {
+        ShiftOr::setPattern(s, err);
+        dist = err;
+    }
+
+    void search(Parser* parser) override {
+
+        long test = 1 << ((pat.size() - 1) % 64);
+        std::vector< std::vector<long> > matchs;
+        matchs.assign(dist+1, std::vector<long>(size, -1) );
+
+        while(parser->has_next_line()) {
+            auto s = parser->next_line();
+            int counter = 0;
+            for(int j=0, lenJ=s.size() ; j<lenJ ; j++) {
+                if(masks[s[j]].size() == 0) {
+                    shiftI(matchs[0]);
+                    orI(matchs[0], mask);
+                } else {
+                    shiftI(matchs[0]);
+                    orI(matchs[0], masks[s[j]]);
+                }
+
+                std::vector<long> sprev2;
+                std::vector<long> sprev = matchs[0];
+                for(int q=1, lenQ=dist+1 ; q<lenQ ; q++) {
+                    sprev2 = matchs[q];
+                    
+                    if(masks[s[j]].size() == 0) {
+                        shiftI(matchs[q]);
+                        orI(matchs[q], mask);
+                    } else {
+                        shiftI(matchs[q]);
+                        orI(matchs[q], masks[s[j]]);
+                    }
+
+                    std::vector<long> aux1(matchs[q-1]);
+                    shiftI(aux1);
+                    andI(matchs[q], aux1);
+
+                    std::vector<long> aux2(sprev);
+                    shiftI(aux2);
+                    andI(matchs[q], aux2);
+
+                    andI(matchs[q], sprev);
+
+                    sprev = sprev2;
+                }
+
+                if(~matchs[dist][0] & test){
+                    counter++;
+                }
+            }
+
+            if(counter) {
+                add_answer(s, counter);
+            }
+
+            for(int i=0, lenI=dist+1 ; i<lenI ; i++) {
+                std::vector<long>& match = matchs[i];
+                std::fill(match.begin(), match.end(), -1);
+            }
+        }
+    }
+
+};
 
 // struct AhoCorasick: Search{
 
