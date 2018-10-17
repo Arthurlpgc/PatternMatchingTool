@@ -3,7 +3,7 @@ pwd := $(CURDIR)
 pathvar := ${PATH}
 
 pmt:
-	$(CC) main.cpp -o ../bin/pmt -std=c++14
+	$(CC) main.cpp -o ../bin/pmt -std=c++14 -O3
 
 path: 
 	export PATH=$(pathvar):$(pwd)/../bin/

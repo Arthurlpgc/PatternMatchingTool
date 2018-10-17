@@ -6,10 +6,9 @@
 #include <algorithm>
 #include "parser.h"
 
-#define add_answer(X,Y) answers.push_back(X); count += Y; 
+#define add_answer(X,Y) if(!parser->opts.count)std::cout<<X<<"\n"; count += Y; 
 struct Search {
     int count = 0;
-    std::vector<std::string> answers;
     virtual void setPattern(std::string s, int err = 0) = 0;
     virtual void search(Parser* s) = 0;
 };
@@ -18,7 +17,7 @@ typedef int ukkState;
 typedef std::pair<ukkState, int> ukkStateTransition;
 struct Ukkonen: Search {
     std::set<ukkState> F;
-    std::map<ukkStateTransition, ukkState> delta;
+    std::map<ukkState, ukkState> delta[256];
     int keyMap[256];
     std::string pattern;
     int pattern_size;
@@ -37,7 +36,7 @@ struct Ukkonen: Search {
         pattern = s;
         pattern_size = pattern.size();
         F.clear();
-        delta.clear();
+        for(int i = 0; i < 256; i++)delta[i].clear();
 
         int c_id = 1;
 
@@ -75,7 +74,7 @@ struct Ukkonen: Search {
                 if(next_state[pattern_size] <= err) {
                     F.insert(next_state_id);
                 }
-                delta[ukkStateTransition(now, i)] = next_state_id;
+                delta[i][now] = next_state_id;
             }
         }
 
@@ -87,7 +86,7 @@ struct Ukkonen: Search {
             occ++;
         }
         for(auto c: s){
-            state = delta[ukkStateTransition(state, keyMap[c])];
+            state = delta[keyMap[c]][state];
             if(F.count(state)){
                 occ++;
             }
@@ -95,9 +94,9 @@ struct Ukkonen: Search {
         return occ;
     }
 
-    void search(Parser* vs) override {
-        while(vs->has_next_line()){
-            auto s = vs->next_line();
+    void search(Parser* parser) override {
+        while(parser->has_next_line()){
+            auto s = parser->next_line();
             auto cnt = searchLine(s);
             if(cnt) 
                 add_answer(s, cnt);
