@@ -5,9 +5,11 @@
 #include <set>
 #include <algorithm>
 #include "parser.h"
+#include "tracer.h"
 
 #define add_answer(X,Y) if(!parser->count)std::cout<<X<<"\n"; count += Y; 
 struct Search {
+    Tracer* tracer;
     int count = 0;
     virtual void setPattern(std::string s, int err = 0) = 0;
     virtual void search(Parser* s) = 0;
@@ -29,6 +31,7 @@ struct Ukkonen: Search {
     }
 
     void setPattern(std::string s, int err = 0) override {
+        tracer->start(1);
         pattern = s;
         pattern_size = pattern.size();
         F.clear();
@@ -66,7 +69,7 @@ struct Ukkonen: Search {
                 delta[i][now] = next_state_id;
             }
         }
-
+        tracer->finish();
     }
 
     inline int searchLine(const std::string& s) {
@@ -88,12 +91,14 @@ struct Ukkonen: Search {
     }
 
     void search(Parser* parser) override {
+        tracer->start(1);
         while(parser->has_next_line()){
             auto s = parser->next_line();
             auto cnt = searchLine(s);
             if(cnt) 
                 add_answer(s, cnt);
         }
+        tracer->start(9);
     }
 };
 

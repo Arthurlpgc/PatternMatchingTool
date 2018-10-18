@@ -1,10 +1,14 @@
 #include <iostream>
 #include <string>
 #include "search.h"
+#include "tracer.h"
+
 
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
+    Tracer* tracer = new Tracer();
     Parser p;
+    p.tracer = tracer;
     p.argc=argc;
     p.argv=argv;
     p.parse();
@@ -25,6 +29,7 @@ int main(int argc, char* argv[]) {
             std::cerr << "Invalid algorithm";
             return -1;
         }
+        search->tracer = tracer;
         for(auto pattern: p.patts) {
             search->setPattern(pattern, p.edit_distance);
             search->search(&p);

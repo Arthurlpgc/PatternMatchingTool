@@ -1,6 +1,7 @@
 #include <getopt.h>
 #include <string>
 #include <fstream>
+#include "tracer.h"
 #include <vector>
 
 const char* const short_opts = "tce:p:a:h";
@@ -14,6 +15,7 @@ const option long_opts[] = {
 
 struct Parser {
     int argc;
+    Tracer* tracer;
     char** argv;
     int error = 0;
     std::vector<std::string> patts;
@@ -29,6 +31,7 @@ struct Parser {
     std::string line;
 
     inline std::string next_line(){
+        tracer->start(0);
         if(current_file != NULL && current_file->eof()){
             current_file->close();
             current_file = NULL;
@@ -44,17 +47,21 @@ struct Parser {
             }
         }
         getline(*current_file, line);
+        tracer->start(1);
         return line;
     }
 
     inline bool has_next_line(){
+        tracer->start(0);
         if (!file_names.empty()){
             return true;
         }
+        tracer->start(1);
         return current_file != NULL && !current_file->eof();
     }
 
     inline void parse() {
+        tracer->start(0);
         int opt = 0;
         
         while(opt != -1) {
@@ -98,5 +105,6 @@ struct Parser {
             std::string file_name = std::string(argv[ind++]);
             file_names.push(file_name);
         }
+        tracer->start(9);
     }
 };
