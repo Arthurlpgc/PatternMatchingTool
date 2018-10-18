@@ -3,13 +3,6 @@
 #include <fstream>
 #include <vector>
 
-struct matchOptions {
-    bool count = false;
-    int edit_distance = 0;
-    std::string algorithm = "None";
-    std::string pattern_file_path = "";
-};
-
 const char* const short_opts = "tce:p:a:h";
 const option long_opts[] = {
     {"count", no_argument, nullptr, 'c'},
@@ -27,11 +20,15 @@ struct Parser {
     std::queue<std::string> file_names;
     std::queue<std::string> used_file_names;
     std::ifstream* current_file = NULL;
-    matchOptions opts;
+    bool count = false;
+    int edit_distance = 0;
+    std::string algorithm = "None";
+    std::string pattern_file_path = "";
     bool help = false;
     bool time_it = false;
+    std::string line;
 
-    std::string next_line(){
+    inline std::string next_line(){
         if(current_file != NULL && current_file->eof()){
             current_file->close();
             current_file = NULL;
@@ -41,8 +38,11 @@ struct Parser {
             current_file->open(file_names.front());
             used_file_names.push(file_names.front());
             file_names.pop();
+            if(!current_file->is_open()){
+                current_file = NULL;
+                return "\n";
+            }
         }
-        std::string line;
         getline(*current_file, line);
         return line;
     }
@@ -54,24 +54,24 @@ struct Parser {
         return current_file != NULL && !current_file->eof();
     }
 
-    void parse() {
+    inline void parse() {
         int opt = 0;
         
         while(opt != -1) {
             opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
             switch(opt) {
                 case 'c':
-                    opts.count = true;
+                    count = true;
                     break;
                 case 'e':
-                    opts.edit_distance = std::stoi(optarg);
+                    edit_distance = std::stoi(optarg);
                     break;
                 case 'p':
-                    opts.pattern_file_path = std::string(optarg);
+                    pattern_file_path = std::string(optarg);
                     // TODO
                     break;
                 case 'a':
-                    opts.algorithm = std::string(optarg);
+                    algorithm = std::string(optarg);
                     break;
                 case 't':
                     time_it = true;
@@ -84,7 +84,7 @@ struct Parser {
         }
 
         int ind = optind;
-        if (opts.pattern_file_path != ""){
+        if (pattern_file_path != ""){
 
         } else if (ind != argc) {
             patts.push_back(std::string(argv[ind]));
