@@ -53,5 +53,12 @@ test4:
 		((number = number + 1)); \
 	done 
 
+test5:
+	number=0
+	time while [[ $$number -le $(seqtest) ]]; \
+		do python src/a.py >lixo; \
+		((number = number + 1)); \
+	done 
+
 path: 
 	export PATH=$(pathvar):$(pwd)/../bin/

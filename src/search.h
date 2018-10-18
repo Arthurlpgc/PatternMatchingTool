@@ -35,8 +35,6 @@ struct Ukkonen: Search {
         for(int i = 0; i < 256; i++)
             delta[i].clear();
 
-        int c_id = 1;
-
         std::vector<int> state;
         for(int i = 0, sze = s.length(); i <= sze; i++) {
             state.push_back(i);
@@ -53,7 +51,7 @@ struct Ukkonen: Search {
             int now = q.front();
             q.pop();
             state = stateMap[now];
-            for(int i = 0; i < c_id; i++) { 
+            for(int i = 0; i < 128; i++) { 
                 auto next_state = make_transition(state, i, err);
                 int next_state_id = revStateMap[next_state];
                 if(!next_state_id) {
@@ -81,6 +79,10 @@ struct Ukkonen: Search {
             if(F.count(state)){
                 occ++;
             }
+        }
+        state = delta[0][state];
+        if(F.count(state)){
+            occ++;
         }
         return occ;
     }
