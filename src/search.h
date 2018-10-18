@@ -104,80 +104,107 @@ struct Ukkonen: Search {
 };
 
 struct ShiftOr: Search {
-    const long MSB = 0x8000000000000000;
-    std::vector< std::vector<long> > masks;
-    std::vector<long> mask;
-    std::string pat;
-    int size;
+    #define MSB 0x8000000000000000
 
-    inline void shiftI(std::vector<long>& m) {
-        m[0] <<= 1;
-        for(int a=1, len=m.size() ; a<len ; a++) {
-            m[a-1] |= (m[a] & MSB ? 1 : 0);
-            m[a] <<= 1;
-        }
-    }
+    #define shiftI(m)                           \
+        m[0] <<= 1;                             \
+        for(int a=1 ; a<size ; a++) {           \
+            m[a-1] |= m[a] >> 63;     			\
+            m[a] <<= 1;                         \
+        }                                       \
 
-    inline void orI(std::vector<long>& m, std::vector<long>& n) {
-        for(int a=0, len=m.size() ; a<len ; a++) {
-            m[a] |= n[a];
-        }
-    }
+    #define orI(m, n)                           \
+        for(int a=0 ; a<size ; a++) {           \
+            m[a] |= n[a];                       \
+        }                                       \
 
-    inline void andI(std::vector<long>& m, std::vector<long>& n) {
-        for(int a=0, len=m.size() ; a<len ; a++) {
-            m[a] &= n[a];
-        }
-    }
+    #define andI(m, n)                          \
+        for(int a=0 ; a<size ; a++) {           \
+            m[a] &= n[a];                       \
+        }                                       \
+
+    #define shiftOr(msk, mtc, len)				\
+        if(msk == NULL) {						\
+            memset(mtc, -1, len);				\
+        } else {								\
+            shiftI(mtc);						\
+            orI(mtc, msk);						\
+        }										\
+
+    long** masks = NULL;
+    long test;
+    long size;
 
     void setPattern(std::string s, int err = 0) override {
-        masks.assign(256, std::vector< long >() );
-        
-        size = ((s.size() - 1) >> 6) + 1;
-        mask.assign(size, -1);
-        mask[size - 1] -= 1;
 
-        pat = s;
-
-        for(int i=0, len=s.size() ; i<len ; i++) {
-            if(masks[s[i]].size() == 0) {
-                masks[s[i]].assign(size, -1);
+        if(masks != NULL) {
+            for(int i=0 ; i<256 ; i++) {
+                if(masks[i] != NULL) {
+                    delete[] masks[i];
+                }
             }
-            andI(masks[s[i]], mask);
+            delete[] masks;
+        }
+        
+        const int lenS = s.size() - 1;
+        size = (lenS >> 6) + 1;
+        test = 1 << (lenS % 64);
+        const int size1 = size - 1;
+        
+        long mask[size];
+        const int buf = size * sizeof(long);
+        memset(mask, -1, buf);
+        mask[size1] -= 1;
+
+        masks = new long*[256];
+        memset(masks, 0, 256 * sizeof(long*));
+
+        for(char c : s) {
+            long* aux = masks[c];
+            if(aux == NULL) {
+                masks[c] = new long[size];
+                aux = masks[c];
+                memset(aux, -1, buf);
+            }
+            andI(aux, mask);
             shiftI(mask);
-            mask[size - 1] |= 1;
+            mask[size1] |= 1;
         }
     }
 
     void search(Parser* parser) override {
-        long test = 1 << ((pat.size() - 1) % 64);
-        std::vector<long> match(size, -1);
+        const int buf = size * sizeof(long);
+        const int flagCount = !parser->opts.count;
+        long match[size];
 
-        for(; parser->has_next_line() ; ) {
-            auto s = parser->next_line();
+        while(parser->has_next_line()) {
+            std::string s = parser->next_line();
+            memset(match, -1, buf);
             int counter = 0;
-            for(int j=0, lenJ=s.size() ; j<lenJ ; j++) {
-                if(masks[s[j]].size() == 0) {
-                    shiftI(match);
-                    orI(match, mask);
-                } else {
-                    shiftI(match);
-                    orI(match, masks[s[j]]);
-                }
+            for(char c : s) {
+                const long* mask = masks[c];
+                shiftOr(mask, match, buf);
                 if(~match[0] & test){
                     counter++;
+                    if(flagCount){
+                        break;
+                    }
                 }
             }
-
             if(counter) {
                 add_answer(s, counter);
             }
-            std::fill(match.begin(), match.end(), -1);
         }
     }
 };
 
 struct WuManber: ShiftOr {
+
+    #define copy(a, b)                      \
+        for(int i=0 ; i<size ; i++) {       \
+            a[i] = b[i];                    \
+        }                                   \
+
     int dist;
 
     void setPattern(std::string s, int err = 0) override {
@@ -187,60 +214,59 @@ struct WuManber: ShiftOr {
 
     void search(Parser* parser) override {
 
-        long test = 1 << ((pat.size() - 1) % 64);
-        std::vector< std::vector<long> > matchs;
-        matchs.assign(dist+1, std::vector<long>(size, -1) );
+        const int dstSize = dist + 1;
+        const int buf = size * sizeof(long);
+        const int flagCount = !parser->opts.count;
+        const int clrSize = dstSize * size * sizeof(long);
+        long matchs[dstSize][size];
 
         while(parser->has_next_line()) {
-            auto s = parser->next_line();
+            std::string s = " " + parser->next_line() + "\n";
+            memset(matchs, -1, clrSize);
             int counter = 0;
-            for(int j=0, lenJ=s.size() ; j<lenJ ; j++) {
-                if(masks[s[j]].size() == 0) {
-                    shiftI(matchs[0]);
-                    orI(matchs[0], mask);
-                } else {
-                    shiftI(matchs[0]);
-                    orI(matchs[0], masks[s[j]]);
-                }
 
-                std::vector<long> sprev2;
-                std::vector<long> sprev = matchs[0];
-                for(int q=1, lenQ=dist+1 ; q<lenQ ; q++) {
-                    sprev2 = matchs[q];
-                    
-                    if(masks[s[j]].size() == 0) {
-                        shiftI(matchs[q]);
-                        orI(matchs[q], mask);
-                    } else {
-                        shiftI(matchs[q]);
-                        orI(matchs[q], masks[s[j]]);
+            for(char c : s) {
+
+                const long* mask = masks[c];
+                long* match = matchs[0];
+                long prev1[size];
+                long prev2[size];
+                long aux[size];
+
+                copy(prev1, match);
+
+                shiftOr(mask, match, buf);
+
+                if(dist > 0){
+
+                    for(int q=1 ; q<dstSize ; q++) {
+                        copy(prev2, matchs[q]);
+                        match = matchs[q];
+                        
+                        shiftOr(mask, match, buf);
+
+                        copy(aux, matchs[q-1]);
+                        shiftI(aux);
+                        andI(match, aux);
+
+                        andI(match, prev1);
+
+                        shiftI(prev1);
+                        andI(match, prev1);
+
+                        copy(prev1, prev2);
                     }
-
-                    std::vector<long> aux1(matchs[q-1]);
-                    shiftI(aux1);
-                    andI(matchs[q], aux1);
-
-                    std::vector<long> aux2(sprev);
-                    shiftI(aux2);
-                    andI(matchs[q], aux2);
-
-                    andI(matchs[q], sprev);
-
-                    sprev = sprev2;
                 }
 
                 if(~matchs[dist][0] & test){
                     counter++;
+                    if(flagCount){
+                        break;
+                    }
                 }
             }
-
             if(counter) {
                 add_answer(s, counter);
-            }
-
-            for(int i=0, lenI=dist+1 ; i<lenI ; i++) {
-                std::vector<long>& match = matchs[i];
-                std::fill(match.begin(), match.end(), -1);
             }
         }
     }
