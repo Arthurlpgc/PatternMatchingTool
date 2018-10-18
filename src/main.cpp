@@ -3,6 +3,7 @@
 #include "search.h"
 
 int main(int argc, char* argv[]) {
+    std::ios_base::sync_with_stdio(false);
     Parser p;
     p.argc=argc;
     p.argv=argv;
@@ -14,21 +15,21 @@ int main(int argc, char* argv[]) {
         
     } else {
         Search* search;
-        if(p.opts.algorithm == "None" || p.opts.algorithm == "Ukkonen"){
+        if(p.algorithm == "None" || p.algorithm == "Ukkonen"){
                 search = new Ukkonen();
-        } else if (p.opts.algorithm == "ShiftOr") {
+        } else if (p.algorithm == "ShiftOr") {
                 search = new ShiftOr();
-        } else if (p.opts.algorithm == "WuManber") {
+        } else if (p.algorithm == "WuManber") {
                 search = new WuManber();
         } else {
             std::cerr << "Invalid algorithm";
             return -1;
         }
         for(auto pattern: p.patts) {
-            search->setPattern(pattern, p.opts.edit_distance);
+            search->setPattern(pattern, p.edit_distance);
             search->search(&p);
-            if(p.opts.count) {
-                std::cout << search->count << std::endl;
+            if(p.count) {
+                std::cout << search->count << "\n";
             }
         }
     }

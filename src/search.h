@@ -6,7 +6,7 @@
 #include <algorithm>
 #include "parser.h"
 
-#define add_answer(X,Y) if(!parser->opts.count)std::cout<<X<<"\n"; count += Y; 
+#define add_answer(X,Y) if(!parser->count)std::cout<<X<<"\n"; count += Y; 
 struct Search {
     int count = 0;
     virtual void setPattern(std::string s, int err = 0) = 0;
@@ -21,6 +21,7 @@ struct Ukkonen: Search {
     std::string pattern;
     int pattern_size;
     std::vector<int> patt_as_int;
+
     std::vector<int> make_transition(const std::vector<int>& base, int chr, int err) {
         std::vector<int> state = std::vector<int>(pattern_size + 1, 0);
         for(int i = 1; i <= pattern_size; i++) {
@@ -78,7 +79,7 @@ struct Ukkonen: Search {
 
     }
 
-    int searchLine(const std::string& s) {
+    inline int searchLine(const std::string& s) {
         int state = 1, occ = 0;
         if(F.count(state)){
             occ++;
@@ -173,7 +174,7 @@ struct ShiftOr: Search {
 
     void search(Parser* parser) override {
         const int buf = size * sizeof(long);
-        const int flagCount = !parser->opts.count;
+        const int flagCount = !parser->count;
         long match[size];
 
         while(parser->has_next_line()) {
@@ -216,7 +217,7 @@ struct WuManber: ShiftOr {
         const int size1 = size - 1;
         const int dstSize = dist + 1;
         const int buf = size * sizeof(long);
-        const int flagCount = !parser->opts.count;
+        const int flagCount = !parser->count;
         const int clrSize = dstSize * size * sizeof(long);
         long matchs[dstSize][size];
 
