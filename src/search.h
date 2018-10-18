@@ -213,6 +213,7 @@ struct WuManber: ShiftOr {
 
     void search(Parser* parser) override {
 
+        const int size1 = size - 1;
         const int dstSize = dist + 1;
         const int buf = size * sizeof(long);
         const int flagCount = !parser->opts.count;
@@ -220,8 +221,11 @@ struct WuManber: ShiftOr {
         long matchs[dstSize][size];
 
         while(parser->has_next_line()) {
-            std::string s = " " + parser->next_line() + "\n";
+            std::string s = parser->next_line() + '\n';
             memset(matchs, -1, clrSize);
+            for(int i=1 ; i<dstSize ; i++) {
+                matchs[i][size1] -= 1;
+            }
             int counter = 0;
 
             for(char c : s) {
@@ -257,13 +261,14 @@ struct WuManber: ShiftOr {
                     }
                 }
 
-                if(~matchs[dist][0] & test){
+                if(~matchs[dist][0] & test) {
                     counter++;
                     if(flagCount){
                         break;
                     }
                 }
             }
+
             if(counter) {
                 add_answer(s, counter);
             }
