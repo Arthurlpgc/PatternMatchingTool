@@ -108,7 +108,7 @@ struct ShiftOr: Search {
     #define shiftI(m)                           \
         m[0] <<= 1;                             \
         for(int a=1 ; a<size ; a++) {           \
-            m[a-1] |= (m[a] & MSB ? 1 : 0);     \
+            m[a-1] |= m[a] >> 63;     			\
             m[a] <<= 1;                         \
         }                                       \
 
@@ -121,6 +121,14 @@ struct ShiftOr: Search {
         for(int a=0 ; a<size ; a++) {           \
             m[a] &= n[a];                       \
         }                                       \
+
+    #define shiftOr(msk, mtc, len)				\
+        if(msk == NULL) {						\
+            memset(mtc, -1, len);				\
+        } else {								\
+            shiftI(mtc);						\
+            orI(mtc, msk);						\
+        }										\
 
     long** masks = NULL;
     long test;
@@ -150,7 +158,7 @@ struct ShiftOr: Search {
         masks = new long*[256];
         memset(masks, 0, 256 * sizeof(long*));
 
-        for(char& c : s) {
+        for(char c : s) {
             long* aux = masks[c];
             if(aux == NULL) {
                 masks[c] = new long[size];
@@ -165,23 +173,19 @@ struct ShiftOr: Search {
 
     void search(Parser* parser) override {
         const int buf = size * sizeof(long);
+        const int flagCount = !parser->opts.count;
         long match[size];
 
         while(parser->has_next_line()) {
             std::string s = parser->next_line();
             memset(match, -1, buf);
             int counter = 0;
-            for(char& c : s) {
+            for(char c : s) {
                 const long* mask = masks[c];
-                if(mask == NULL) {
-                    memset(match, -1, buf);
-                } else {
-                    shiftI(match);
-                    orI(match, mask);
-                }
+                shiftOr(mask, match, buf);
                 if(~match[0] & test){
                     counter++;
-                    if(!parser->opts.count){
+                    if(flagCount){
                         break;
                     }
                 }
@@ -211,42 +215,34 @@ struct WuManber: ShiftOr {
 
         const int dstSize = dist + 1;
         const int buf = size * sizeof(long);
+        const int flagCount = !parser->opts.count;
         const int clrSize = dstSize * size * sizeof(long);
         long matchs[dstSize][size];
 
         while(parser->has_next_line()) {
-            std::string s = parser->next_line();
+            std::string s = " " + parser->next_line() + "\n";
             memset(matchs, -1, clrSize);
             int counter = 0;
 
-            for(char& c : s) {
+            for(char c : s) {
+
                 const long* mask = masks[c];
                 long* match = matchs[0];
-                if(mask == NULL) {
-                    memset(match, -1, buf);
-                } else {
-                    shiftI(match);
-                    orI(match, mask);
-                }
+                long prev1[size];
+                long prev2[size];
+                long aux[size];
+
+                copy(prev1, match);
+
+                shiftOr(mask, match, buf);
 
                 if(dist > 0){
-
-                    long prev1[size];
-                    long prev2[size];
-                    long aux[size];
-
-                    copy(prev1, match);
 
                     for(int q=1 ; q<dstSize ; q++) {
                         copy(prev2, matchs[q]);
                         match = matchs[q];
                         
-                        if(mask == NULL) {
-                            memset(match, -1, buf);
-                        } else {
-                            shiftI(match);
-                            orI(match, mask);
-                        }
+                        shiftOr(mask, match, buf);
 
                         copy(aux, matchs[q-1]);
                         shiftI(aux);
@@ -263,7 +259,7 @@ struct WuManber: ShiftOr {
 
                 if(~matchs[dist][0] & test){
                     counter++;
-                    if(!parser->opts.count){
+                    if(flagCount){
                         break;
                     }
                 }
