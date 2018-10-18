@@ -31,7 +31,7 @@ struct Parser {
     std::string line;
 
     inline std::string next_line(){
-        tracer->start(0);
+        tracer->start(4);
         if(current_file != NULL && current_file->eof()){
             current_file->close();
             current_file = NULL;
@@ -52,7 +52,7 @@ struct Parser {
     }
 
     inline bool has_next_line(){
-        tracer->start(0);
+        tracer->start(3);
         if (!file_names.empty()){
             return true;
         }
