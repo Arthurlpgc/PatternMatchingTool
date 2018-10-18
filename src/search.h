@@ -174,7 +174,7 @@ struct ShiftOr: Search {
 
     void search(Parser* parser) override {
         const int buf = size * sizeof(long);
-        const int flagCount = !parser->opts.count;
+        const int flagCount = !parser->count;
         long match[size];
 
         while(parser->has_next_line()) {
@@ -216,7 +216,7 @@ struct WuManber: ShiftOr {
 
         const int dstSize = dist + 1;
         const int buf = size * sizeof(long);
-        const int flagCount = !parser->opts.count;
+        const int flagCount = !parser->count;
         const int clrSize = dstSize * size * sizeof(long);
         long matchs[dstSize][size];
 
