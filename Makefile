@@ -9,12 +9,26 @@ pmt2:
 	$(CC) src/main.cpp -o ./bin/pmt2 -std=c++14 -O3 -DtestDefKey
 
 test:
-	make pmt && make pmt2 && make test1 && make test2 && make test3 && make test4 && rm lixo
+	make pmt && make pmt2 && make test1 && make test1so && make test1wu && make test2 && make test3 && make test4 && rm lixo
 
 test1:
 	number=0
 	time while [[ $$number -le $(seqtest) ]]; \
 		do pmt  -c love ../shakespeare.txt  > lixo; \
+		((number = number + 1)); \
+	done 
+
+test1so:
+	number=0
+	time while [[ $$number -le $(seqtest) ]]; \
+		do pmt -a ShiftOr -c love ../shakespeare.txt  > lixo; \
+		((number = number + 1)); \
+	done 
+
+test1wu:
+	number=0
+	time while [[ $$number -le $(seqtest) ]]; \
+		do pmt -a WuManber -c love ../shakespeare.txt  > lixo; \
 		((number = number + 1)); \
 	done 
 	

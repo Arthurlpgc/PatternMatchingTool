@@ -17,37 +17,29 @@ typedef int ukkState;
 struct Ukkonen: Search {
     std::set<ukkState> F;
     std::map<ukkState, ukkState> delta[256];
-    int keyMap[256];
     std::string pattern;
     int pattern_size;
-    std::vector<int> patt_as_int;
 
-    std::vector<int> make_transition(const std::vector<int>& base, int chr, int err) {
+    inline std::vector<int> make_transition(const std::vector<int>& base, int chr, int err) {
         std::vector<int> state = std::vector<int>(pattern_size + 1, 0);
         for(int i = 1; i <= pattern_size; i++) {
-            state[i] = std::min(std::min(base[i] + 1, base[i-1] + (chr != patt_as_int[i-1] ? 1 : 0)), std::min(err+1, state[i-1]+1));
+            state[i] = std::min(std::min(base[i] + 1, base[i-1] + (chr != pattern[i-1] ? 1 : 0)), std::min(err+1, state[i-1]+1));
         }
         return state;
     }
 
     void setPattern(std::string s, int err = 0) override {
-        memset(keyMap, 0, sizeof keyMap);
         pattern = s;
         pattern_size = pattern.size();
         F.clear();
-        for(int i = 0; i < 256; i++)delta[i].clear();
+        for(int i = 0; i < 256; i++)
+            delta[i].clear();
 
         int c_id = 1;
 
         std::vector<int> state;
         for(int i = 0, sze = s.length(); i <= sze; i++) {
             state.push_back(i);
-            if(i < s.length()) {
-                if(!keyMap[s[i]]) {
-                    keyMap[s[i]] = c_id++;
-                }
-                patt_as_int.push_back(keyMap[s[i]]);
-            }
         }
 
         std::queue<int> q;
@@ -85,7 +77,7 @@ struct Ukkonen: Search {
             occ++;
         }
         for(auto c: s){
-            state = delta[keyMap[c]][state];
+            state = delta[c][state];
             if(F.count(state)){
                 occ++;
             }
