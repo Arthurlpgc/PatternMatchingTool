@@ -234,12 +234,13 @@ struct WuManber: ShiftOr {
 
         while(parser->has_next_line()) {
             std::string s = parser->next_line() + '\n';
+            int counter = 0;
+
             memset(matchs, -1, clrSize);
             for(int i=1 ; i<dstSize ; i++) {
                 matchs[i][size1] = -2;
             }
-            int counter = 0;
-
+            
             for(char c : s) {
 
                 copies(olds, matchs, dstSize);
