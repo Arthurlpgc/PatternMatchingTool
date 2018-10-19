@@ -153,7 +153,7 @@ struct ShiftOr: Search {
         long mask[size];
         const int buf = size * sizeof(long);
         memset(mask, -1, buf);
-        mask[size1] -= 1;
+        mask[size1] = -2;
 
         masks = new long*[256];
         memset(masks, 0, 256 * sizeof(long*));
@@ -204,6 +204,13 @@ struct WuManber: ShiftOr {
             a[i] = b[i];                    \
         }                                   \
 
+    #define copies(a, b, len)               \
+        for(int j=0 ; j<len ; j++) {        \
+            for(int i=0 ; i<size ; i++) {   \
+                a[j][i] = b[j][i];          \
+            }                               \
+        }                                   \
+
     int dist;
 
     void setPattern(std::string s, int err = 0) override {
@@ -219,46 +226,40 @@ struct WuManber: ShiftOr {
         const int flagCount = !parser->count;
         const int clrSize = dstSize * size * sizeof(long);
         long matchs[dstSize][size];
+        long olds[dstSize][size];
+        long aux[size];
 
         while(parser->has_next_line()) {
             std::string s = parser->next_line() + '\n';
             memset(matchs, -1, clrSize);
             for(int i=1 ; i<dstSize ; i++) {
-                matchs[i][size1] -= 1;
+                matchs[i][size1] = -2;
             }
             int counter = 0;
 
             for(char c : s) {
 
+                copies(olds, matchs, dstSize);
+
                 const long* mask = masks[c];
                 long* match = matchs[0];
-                long prev1[size];
-                long prev2[size];
-                long aux[size];
-
-                copy(prev1, match);
-
+                
                 shiftOr(mask, match, buf);
 
-                if(dist > 0){
+                for(int q=1 ; q<dstSize ; q++) {
+                    long* old = olds[q-1];
+                    match = matchs[q];
+                    
+                    shiftOr(mask, match, buf);
 
-                    for(int q=1 ; q<dstSize ; q++) {
-                        copy(prev2, matchs[q]);
-                        match = matchs[q];
-                        
-                        shiftOr(mask, match, buf);
+                    copy(aux, matchs[q-1]);
+                    shiftI(aux);
+                    andI(match, aux);
 
-                        copy(aux, matchs[q-1]);
-                        shiftI(aux);
-                        andI(match, aux);
+                    andI(match, old);
 
-                        andI(match, prev1);
-
-                        shiftI(prev1);
-                        andI(match, prev1);
-
-                        copy(prev1, prev2);
-                    }
+                    shiftI(old);
+                    andI(match, old);
                 }
 
                 if(~matchs[dist][0] & test) {

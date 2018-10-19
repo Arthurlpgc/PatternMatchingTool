@@ -61,4 +61,4 @@ test5:
 	done 
 
 path: 
-	export PATH=$(pathvar):$(pwd)/../bin/
+	export PATH=$(pathvar):$(pwd)/bin/
