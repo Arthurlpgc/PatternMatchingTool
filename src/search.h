@@ -111,7 +111,7 @@ struct ShiftOr: Search {
     #define shiftI(m)                           \
         m[0] <<= 1;                             \
         for(int a=1 ; a<size ; a++) {           \
-            m[a-1] |= m[a] >> 63;     			\
+            m[a-1] |= (m[a] & MSB ? 1 : 0);     \
             m[a] <<= 1;                         \
         }                                       \
 
@@ -150,7 +150,7 @@ struct ShiftOr: Search {
         
         const int lenS = s.size() - 1;
         size = (lenS >> 6) + 1;
-        test = 1 << (lenS % 64);
+        test = 1ll << (lenS % 64);
         const int size1 = size - 1;
         
         long mask[size];
@@ -202,17 +202,32 @@ struct ShiftOr: Search {
 
 struct WuManber: ShiftOr {
 
-    #define copy(a, b)                      \
-        for(int i=0 ; i<size ; i++) {       \
-            a[i] = b[i];                    \
-        }                                   \
+    #define copy(a, b)                                          \
+        for(int i=0 ; i<size ; i++) {                           \
+            a[i] = b[i];                                        \
+        }                                                       \
 
-    #define copies(a, b, len)               \
-        for(int j=0 ; j<len ; j++) {        \
-            for(int i=0 ; i<size ; i++) {   \
-                a[j][i] = b[j][i];          \
-            }                               \
-        }                                   \
+    #define copies(a, b, len)                                   \
+        for(int j=0 ; j<len ; j++) {                            \
+            copy(a[j], b[j])                                    \
+        }                                                       \
+
+    #define compute(c, matchs, olds, temp, buf, dist, dstSize)  \
+        matchs[0];                                              \
+        copies(olds, matchs, dist);                             \
+        const long* mask = masks[c];                            \
+        shiftOr(mask, match, buf);                              \
+        for(int q=1 ; q<dstSize ; q++) {                        \
+            long* old = olds[q-1];                              \
+            match = matchs[q];                                  \
+            shiftOr(mask, match, buf);                          \
+            copy(temp, matchs[q-1]);                            \
+            shiftI(temp);                                       \
+            andI(match, temp);                                  \
+            andI(match, old);                                   \
+            shiftI(old);                                        \
+            andI(match, old);                                   \
+        }                                                       \
 
     int dist;
 
@@ -230,10 +245,10 @@ struct WuManber: ShiftOr {
         const int clrSize = dstSize * size * sizeof(long);
         long matchs[dstSize][size];
         long olds[dstSize][size];
-        long aux[size];
+        long temp[size];
 
         while(parser->has_next_line()) {
-            std::string s = parser->next_line() + '\n';
+            std::string s = parser->next_line();
             int counter = 0;
 
             memset(matchs, -1, clrSize);
@@ -242,36 +257,21 @@ struct WuManber: ShiftOr {
             }
             
             for(char c : s) {
-
-                copies(olds, matchs, dstSize);
-
-                const long* mask = masks[c];
-                long* match = matchs[0];
                 
-                shiftOr(mask, match, buf);
+                long* match = compute(c, matchs, olds, temp, buf, dist, dstSize);
 
-                for(int q=1 ; q<dstSize ; q++) {
-                    long* old = olds[q-1];
-                    match = matchs[q];
-                    
-                    shiftOr(mask, match, buf);
-
-                    copy(aux, matchs[q-1]);
-                    shiftI(aux);
-                    andI(match, aux);
-
-                    andI(match, old);
-
-                    shiftI(old);
-                    andI(match, old);
-                }
-
-                if(~matchs[dist][0] & test) {
+                if(~match[0] & test) {
                     counter++;
                     if(flagCount){
                         break;
                     }
                 }
+            }
+
+            long* match = compute('\n', matchs, olds, temp, buf, dist, dstSize);
+
+            if(~match[0] & test) {
+                counter++;
             }
 
             if(counter) {
