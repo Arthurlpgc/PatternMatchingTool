@@ -17,4 +17,5 @@ struct Tracer {
             std::cout << i << " = " << timed[i] << std::endl;
     }
 };
+
 #endif

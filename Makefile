@@ -14,42 +14,42 @@ test:
 test1:
 	number=0
 	time while [[ $$number -le $(seqtest) ]]; \
-		do pmt  -c love ../shakespeare.txt  > lixo; \
+		do pmt  -c love data/*.txt  > lixo; \
 		((number = number + 1)); \
 	done 
 
 test1so:
 	number=0
 	time while [[ $$number -le $(seqtest) ]]; \
-		do pmt -a ShiftOr -c love ../shakespeare.txt  > lixo; \
+		do pmt -a ShiftOr -c love data/*.txt  > lixo; \
 		((number = number + 1)); \
 	done 
 
 test1wu:
 	number=0
 	time while [[ $$number -le $(seqtest) ]]; \
-		do pmt -a WuManber -c love ../shakespeare.txt  > lixo; \
+		do pmt -a WuManber -c love data/*.txt  > lixo; \
 		((number = number + 1)); \
 	done 
 	
 test2:
 	number=0
 	time while [[ $$number -le $(seqtest) ]]; \
-		do pmt2  -c love ../shakespeare.txt  > lixo; \
+		do pmt2  -c love data/*.txt  > lixo; \
 		((number = number + 1)); \
 	done 
 
 test3:
 	number=0
 	time while [[ $$number -le $(seqtest) ]]; \
-		do grep -c love ../shakespeare.txt  > lixo; \
+		do grep -c love data/*.txt  > lixo; \
 		((number = number + 1)); \
 	done 
 
 test4:
 	number=0
 	time while [[ $$number -le $(seqtest) ]]; \
-		do ggrep -c love ../shakespeare.txt  > lixo; \
+		do ggrep -c love data/*.txt  > lixo; \
 		((number = number + 1)); \
 	done 
 

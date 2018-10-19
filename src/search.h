@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <queue>
 #include <set>
 #include <algorithm>
@@ -18,11 +19,12 @@ struct Search {
 typedef int ukkState;
 struct Ukkonen: Search {
     std::set<ukkState> F;
-    std::map<ukkState, ukkState> delta[256];
+    std::unordered_map<ukkState, ukkState> delta[128];
     std::string pattern;
     int pattern_size;
+    int err;
 
-    inline std::vector<int> make_transition(const std::vector<int>& base, int chr, int err) {
+    inline std::vector<int> make_transition(const std::vector<int>& base, int chr) {
         std::vector<int> state = std::vector<int>(pattern_size + 1, 0);
         for(int i = 1; i <= pattern_size; i++) {
             state[i] = std::min(std::min(base[i] + 1, base[i-1] + (chr != pattern[i-1] ? 1 : 0)), std::min(err+1, state[i-1]+1));
@@ -30,12 +32,13 @@ struct Ukkonen: Search {
         return state;
     }
 
-    void setPattern(std::string s, int err = 0) override {
-        tracer->start(1);
+    void setPattern(std::string s, int error = 0) override {
+        err = error;
+        tracer->start(2);
         pattern = s;
         pattern_size = pattern.size();
         F.clear();
-        for(int i = 0; i < 256; i++)
+        for(int i = 0; i < 128; i++)
             delta[i].clear();
 
         std::vector<int> state;
@@ -55,7 +58,7 @@ struct Ukkonen: Search {
             q.pop();
             state = stateMap[now];
             for(int i = 0; i < 128; i++) { 
-                auto next_state = make_transition(state, i, err);
+                auto next_state = make_transition(state, i);
                 int next_state_id = revStateMap[next_state];
                 if(!next_state_id) {
                     revStateMap[next_state] = next_free_id;
@@ -69,7 +72,7 @@ struct Ukkonen: Search {
                 delta[i][now] = next_state_id;
             }
         }
-        tracer->finish();
+       tracer->start(9);
     }
 
     inline int searchLine(const std::string& s) {
@@ -98,7 +101,7 @@ struct Ukkonen: Search {
             if(cnt) 
                 add_answer(s, cnt);
         }
-        tracer->start(9);
+        tracer->finish();
     }
 };
 
