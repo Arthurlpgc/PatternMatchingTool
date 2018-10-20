@@ -36,6 +36,8 @@ int main(int argc, char* argv[]) {
             if(p.count) {
                 std::cout << search->count << "\n";
             }
+            search->count = 0;
+            p.parse(false);
         }
     }
     return 0;

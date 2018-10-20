@@ -65,53 +65,70 @@ struct Parser {
 #ifdef tracerrun
         tracer->start(1);
 #endif
-        return current_file != NULL && !current_file->eof();
+        return  current_file!= NULL && !current_file->eof();
     }
 
-    inline void parse() {
+    inline void parse(bool first_load=true) {
         tracer->start(0);
-        int opt = 0;
-        
-        while(opt != -1) {
-            opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
-            switch(opt) {
-                case 'c':
-                    count = true;
-                    break;
-                case 'e':
-                    edit_distance = std::stoi(optarg);
-                    break;
-                case 'p':
-                    pattern_file_path = std::string(optarg);
-                    // TODO
-                    break;
-                case 'a':
-                    algorithm = std::string(optarg);
-                    break;
-                case 't':
-                    time_it = true;
-                    break;
-                case -1:
-                    break;
-                default:
-                    help = true;
+
+        if(first_load) {
+            int opt = 0;
+            
+            while(opt != -1) {
+                opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
+                switch(opt) {
+                    case 'c':
+                        count = true;
+                        break;
+                    case 'e':
+                        edit_distance = std::stoi(optarg);
+                        break;
+                    case 'p':
+                        pattern_file_path = std::string(optarg);
+                        // TODO
+                        break;
+                    case 'a':
+                        algorithm = std::string(optarg);
+                        break;
+                    case 't':
+                        time_it = true;
+                        break;
+                    case -1:
+                        break;
+                    default:
+                        help = true;
+                }
             }
-        }
 
-        int ind = optind;
-        if (pattern_file_path != ""){
-
-        } else if (ind != argc) {
-            patts.push_back(std::string(argv[ind]));
-            ind++;
+            int ind = optind;
+            if (pattern_file_path != ""){
+                std::string pattern;
+                std::ifstream* pattern_file = new std::ifstream();
+                pattern_file->open(pattern_file_path);
+                while(pattern_file->is_open() && !pattern_file->eof()) {
+                    getline(*pattern_file, pattern);
+                    patts.push_back(pattern);
+                }
+                pattern_file->close();
+            } else if (ind != argc) {
+                patts.push_back(std::string(argv[ind]));
+                ind++;
+            } else {
+                std::cerr << "missing pattern" << std::endl;
+                error = -1;
+                return;
+            }
+            while(ind < argc) {
+                std::string file_name = std::string(argv[ind++]);
+                file_names.push(file_name);
+            }
         } else {
-            std::cerr << "missing pattern" << std::endl;
-            error = -1;
-            return;
-        }
-        while(ind < argc) {
-            std::string file_name = std::string(argv[ind++]);
-            file_names.push(file_name);
+            int ind = optind;
+            if(pattern_file_path == "" && ind != argc) ind++;
+            while(ind < argc) {
+                std::string file_name = std::string(argv[ind++]);
+                file_names.push(file_name);
+            }
         }
         tracer->start(9);
     }

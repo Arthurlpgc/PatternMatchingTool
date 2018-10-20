@@ -106,12 +106,13 @@ struct Ukkonen: Search {
 };
 
 struct ShiftOr: Search {
-    #define MSB 0x8000000000000000
+
+    #define ull unsigned long long
 
     #define shiftI(m)                           \
         m[0] <<= 1;                             \
         for(int a=1 ; a<size ; a++) {           \
-            m[a-1] |= (m[a] & MSB ? 1 : 0);     \
+            m[a-1] |= m[a] >> 63;               \
             m[a] <<= 1;                         \
         }                                       \
 
@@ -133,9 +134,9 @@ struct ShiftOr: Search {
             orI(mtc, msk);						\
         }										\
 
-    long** masks = NULL;
-    long test;
-    long size;
+    ull** masks = NULL;
+    ull test;
+    int size;
 
     void setPattern(std::string s, int err = 0) override {
 
@@ -153,18 +154,18 @@ struct ShiftOr: Search {
         test = 1ll << (lenS % 64);
         const int size1 = size - 1;
         
-        long mask[size];
-        const int buf = size * sizeof(long);
+        ull mask[size];
+        const int buf = size * sizeof(ull);
         memset(mask, -1, buf);
         mask[size1] = -2;
 
-        masks = new long*[256];
-        memset(masks, 0, 256 * sizeof(long*));
+        masks = new ull*[256];
+        memset(masks, 0, 256 * sizeof(ull*));
 
         for(char c : s) {
-            long* aux = masks[c];
+            ull* aux = masks[c];
             if(aux == NULL) {
-                masks[c] = new long[size];
+                masks[c] = new ull[size];
                 aux = masks[c];
                 memset(aux, -1, buf);
             }
@@ -175,16 +176,16 @@ struct ShiftOr: Search {
     }
 
     void search(Parser* parser) override {
-        const int buf = size * sizeof(long);
+        const int buf = size * sizeof(ull);
         const int flagCount = !parser->count;
-        long match[size];
+        ull match[size];
 
         while(parser->has_next_line()) {
             std::string s = parser->next_line();
             memset(match, -1, buf);
             int counter = 0;
             for(char c : s) {
-                const long* mask = masks[c];
+                const ull* mask = masks[c];
                 shiftOr(mask, match, buf);
                 if(~match[0] & test){
                     counter++;
@@ -215,10 +216,10 @@ struct WuManber: ShiftOr {
     #define compute(c, matchs, olds, temp, buf, dist, dstSize)  \
         matchs[0];                                              \
         copies(olds, matchs, dist);                             \
-        const long* mask = masks[c];                            \
+        const ull* mask = masks[c];                             \
         shiftOr(mask, match, buf);                              \
         for(int q=1 ; q<dstSize ; q++) {                        \
-            long* old = olds[q-1];                              \
+            ull* old = olds[q-1];                               \
             match = matchs[q];                                  \
             shiftOr(mask, match, buf);                          \
             copy(temp, matchs[q-1]);                            \
@@ -240,12 +241,12 @@ struct WuManber: ShiftOr {
 
         const int size1 = size - 1;
         const int dstSize = dist + 1;
-        const int buf = size * sizeof(long);
+        const int buf = size * sizeof(ull);
         const int flagCount = !parser->count;
-        const int clrSize = dstSize * size * sizeof(long);
-        long matchs[dstSize][size];
-        long olds[dstSize][size];
-        long temp[size];
+        const int clrSize = dstSize * size * sizeof(ull);
+        ull matchs[dstSize][size];
+        ull olds[dstSize][size];
+        ull temp[size];
 
         while(parser->has_next_line()) {
             std::string s = parser->next_line();
@@ -258,7 +259,7 @@ struct WuManber: ShiftOr {
             
             for(char c : s) {
                 
-                long* match = compute(c, matchs, olds, temp, buf, dist, dstSize);
+                ull* match = compute(c, matchs, olds, temp, buf, dist, dstSize);
 
                 if(~match[0] & test) {
                     counter++;
@@ -268,7 +269,7 @@ struct WuManber: ShiftOr {
                 }
             }
 
-            long* match = compute('\n', matchs, olds, temp, buf, dist, dstSize);
+            ull* match = compute('\n', matchs, olds, temp, buf, dist, dstSize);
 
             if(~match[0] & test) {
                 counter++;
