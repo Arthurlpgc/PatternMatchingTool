@@ -6,6 +6,7 @@
 
 const char* const short_opts = "tce:p:a:h";
 const option long_opts[] = {
+    {"help", no_argument, nullptr, 'h'},
     {"count", no_argument, nullptr, 'c'},
     {"edit", required_argument, nullptr, 'e'},
     {"pattern", required_argument, nullptr, 'p'},
@@ -47,7 +48,13 @@ struct Parser {
                     break;
                 default:
                     help = true;
+                    return;
             }
+        }
+
+        if (argc <= 1) {
+            help = true;
+            return;
         }
 
         int ind = optind;
