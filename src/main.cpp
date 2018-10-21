@@ -8,7 +8,14 @@ int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
     Parser parser(argc, argv);
 
-    if(parser.error == 1) {
+    if (parser.help) {
+        std::cout << "Usage: pmt [options] [pattern] file [file...]\n\nOptions:\n";
+        std::cout << "  -a, --algorithm ALGORITHM     Sets the algorithm to be used(can be Ukkonen, AhoCorasik, ShiftOr or WuMamber)\n";
+        std::cout << "  -c, --count                   Displays the number of lines each pattern occurs\n";
+        std::cout << "  -e, --edit DISTANCE           Tries to find approximate matches with at most the edit distance given, if the algorithm doesnt support, it will be ignored\n";
+        std::cout << "  -h, --help                    Shows this guide\n";
+        std::cout << "  -p, --pattern PATTERN_FILE    Grabs the patterns given in a file, when this option is passed, the pattern parameter should not be passed.\n";
+    } else if(parser.error == 1) {
         std::cerr << "Missing pattern" << std::endl;
         return -1;
     } else if(parser.error == 2) {
@@ -17,9 +24,7 @@ int main(int argc, char* argv[]) {
     } else if(parser.error == 3) {
         std::cerr << "Edit distance error should be less than the pattern size" << std::endl;
         return -1;
-    } else if (parser.help) {
-        //TODO
-    } else {
+    }  else {
         std::list<Search*> searchs;
         for(auto pattern: parser.patts) {
             Search* search;

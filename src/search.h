@@ -15,7 +15,7 @@ struct Search {
 typedef int ukkState;
 struct Ukkonen: Search {
     std::set<ukkState> F;
-    std::unordered_map<ukkState, ukkState> delta[128];
+    std::unordered_map<ukkState, ukkState> delta[256];
     std::string pattern;
     int pattern_size;
     int err;
@@ -33,7 +33,7 @@ struct Ukkonen: Search {
         pattern = s;
         pattern_size = pattern.size();
         F.clear();
-        for(int i = 0; i < 128; i++)
+        for(int i = 0; i < 256; i++)
             delta[i].clear();
 
         std::vector<int> state;
@@ -52,7 +52,7 @@ struct Ukkonen: Search {
             int now = q.front();
             q.pop();
             state = stateMap[now];
-            for(int i = 0; i < 128; i++) { 
+            for(int i = 0; i < 256; i++) { 
                 auto next_state = make_transition(state, i);
                 int next_state_id = revStateMap[next_state];
                 if(!next_state_id) {
@@ -74,7 +74,7 @@ struct Ukkonen: Search {
         if(F.count(state)){
             occ++;
         }
-        for(auto c: s){
+        for(unsigned char c: s){
             state = delta[c][state];
             if(F.count(state)){
                 occ++;
