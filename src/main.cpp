@@ -26,20 +26,30 @@ int main(int argc, char* argv[]) {
         return -1;
     }  else {
         std::list<Search*> searchs;
-        for(auto pattern: parser.patts) {
-            Search* search;
-            if(parser.algorithm == "None" || parser.algorithm == "Ukkonen"){
-                search = new Ukkonen();
-            } else if (parser.algorithm == "WuManber") {
-                search = new WuManber();
-            } else if (parser.algorithm == "ShiftOr") {
-                search = new ShiftOr();
-            } else {
-                std::cerr << "Invalid algorithm" << std::endl;
-                return -1;
+        if (parser.algorithm == "AhoCorasik") {
+            Search* search = new AhoCorasik();
+            for(auto pattern: parser.patts) {
+                search->setPattern(pattern, parser.edit_distance);
             }
-            search->setPattern(pattern, parser.edit_distance);
             searchs.push_back(search);
+        } else{
+            for(auto pattern: parser.patts) {
+                Search* search;
+                if(parser.algorithm == "None" || parser.algorithm == "Ukkonen"){
+                    search = new Ukkonen();
+                } else if (parser.algorithm == "AhoCorasik") {
+                    search = new AhoCorasik();
+                } else if (parser.algorithm == "WuManber") {
+                    search = new WuManber();
+                } else if (parser.algorithm == "ShiftOr") {
+                    search = new ShiftOr();
+                } else {
+                    std::cerr << "Invalid algorithm" << std::endl;
+                    return -1;
+                }
+                search->setPattern(pattern, parser.edit_distance);
+                searchs.push_back(search);
+            }
         }
 
         while(parser.iterator()) {

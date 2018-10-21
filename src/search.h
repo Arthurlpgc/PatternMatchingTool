@@ -250,6 +250,73 @@ struct WuManber: ShiftOr {
     }
 };
 
-// struct AhoCorasick: Search{
-//
-// };
+struct AhoCorasik: Search {
+    std::vector<int> fail, word;
+    std::vector<std::vector<int> > transition;
+    bool ready = true;
+    void setPattern(std::string s, int err = 0) override {  
+        if (transition.size() == 0) {
+            transition.push_back(std::vector<int>(256,-1));
+            word.push_back(0);
+            fail.push_back(0);
+        }
+        int node = 0, pos = 0;
+        while(true){
+            if (pos == s.size()) {
+                word[node] = 1;
+                break;
+            } else {
+                unsigned char c = s[pos];
+                if (transition[node][c] == -1) {
+                    transition[node][c] = transition.size();
+                    transition.push_back(std::vector<int>(256,-1));
+                    fail.push_back(0);
+                    word.push_back(0);
+                }
+                node = transition[node][c];
+                pos++;
+            }
+        }
+        ready = false;
+    }
+    void prepare(){
+        if(ready)return;
+        std::queue<int> q;
+        for(auto s: transition[0]) 
+            if(s != -1)
+                q.push(s);
+        while(!q.empty()) {
+            int s = q.front();
+            q.pop();
+            for(int c=0;c<256;c++){
+                if (transition[s][c] != -1) {
+                    int s2 = transition[s][c];
+                    q.push(s2);
+                    int f = fail[s];
+                    while(transition[f][c]!=-1 && f) {
+                        f = fail[f];
+                    }
+                    if(transition[f][c] == -1)
+                        fail[s2] = 0;
+                    else
+                        fail[s2] = transition[f][c];
+
+                }
+            }
+        }
+        
+        ready = true;
+    }
+    int search(std::string s) override {
+        int state = 0;
+        for(unsigned char c: s) {
+            while(state && transition[state][c]==-1)
+                state = fail[state];
+            if(transition[state][c]!=-1)
+                state = transition[state][c];
+            if(word[state])
+                return 1;
+        }
+        return 0;
+    }
+};
