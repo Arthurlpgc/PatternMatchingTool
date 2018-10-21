@@ -97,7 +97,7 @@ struct Parser {
             delete file;
         }
         if(filename != "") {
-            filename = filenames.front() + ":";
+            filename = filenames.front() + ": ";
         }
         file = new std::ifstream();
         file->open(filenames.front());
