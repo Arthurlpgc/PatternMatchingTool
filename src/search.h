@@ -1,19 +1,17 @@
-#include <vector>
-#include <string>
-#include <map>
 #include <unordered_map>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <vector>
 #include <queue>
 #include <set>
-#include <algorithm>
-#include "parser.h"
-#include "tracer.h"
+#include <map>
 
-#define add_answer(X,Y) if(!parser->count)std::cout<<X<<"\n"; count += Y; 
+#include <iostream>
+
 struct Search {
-    Tracer* tracer;
-    int count = 0;
     virtual void setPattern(std::string s, int err = 0) = 0;
-    virtual void search(Parser* s) = 0;
+    virtual int search(std::string s) = 0;
 };
 
 typedef int ukkState;
@@ -34,7 +32,6 @@ struct Ukkonen: Search {
 
     void setPattern(std::string s, int error = 0) override {
         err = error;
-        tracer->start(2);
         pattern = s;
         pattern_size = pattern.size();
         F.clear();
@@ -72,7 +69,6 @@ struct Ukkonen: Search {
                 delta[i][now] = next_state_id;
             }
         }
-       tracer->start(9);
     }
 
     inline int searchLine(const std::string& s) {
@@ -93,15 +89,9 @@ struct Ukkonen: Search {
         return occ;
     }
 
-    void search(Parser* parser) override {
-        tracer->start(1);
-        while(parser->has_next_line()){
-            auto s = parser->next_line();
-            auto cnt = searchLine(s);
-            if(cnt) 
-                add_answer(s, cnt);
-        }
-        tracer->finish();
+    int search(std::string s) override {
+        auto cnt = searchLine(s);
+        return cnt;
     }
 };
 
@@ -175,42 +165,33 @@ struct ShiftOr: Search {
         }
     }
 
-    void search(Parser* parser) override {
+    int search(std::string s) override {
         const int buf = size * sizeof(ull);
-        const int flagCount = !parser->count;
+        
         ull match[size];
-
-        while(parser->has_next_line()) {
-            std::string s = parser->next_line();
-            memset(match, -1, buf);
-            int counter = 0;
-            for(char c : s) {
-                const ull* mask = masks[c];
-                shiftOr(mask, match, buf);
-                if(~match[0] & test){
-                    counter++;
-                    if(flagCount){
-                        break;
-                    }
-                }
-            }
-            if(counter) {
-                add_answer(s, counter);
+        memset(match, -1, buf);
+        
+        for(char c : s) {
+            const ull* mask = masks[c];
+            shiftOr(mask, match, buf);
+            if(~match[0] & test){
+                return 1;
             }
         }
+        return 0;
     }
 };
 
 struct WuManber: ShiftOr {
 
-    #define copy(a, b)                                          \
+    #define clone(a, b)                                         \
         for(int i=0 ; i<size ; i++) {                           \
             a[i] = b[i];                                        \
         }                                                       \
 
     #define copies(a, b, len)                                   \
         for(int j=0 ; j<len ; j++) {                            \
-            copy(a[j], b[j])                                    \
+            clone(a[j], b[j])                                   \
         }                                                       \
 
     #define compute(c, matchs, olds, temp, buf, dist, dstSize)  \
@@ -222,7 +203,7 @@ struct WuManber: ShiftOr {
             ull* old = olds[q-1];                               \
             match = matchs[q];                                  \
             shiftOr(mask, match, buf);                          \
-            copy(temp, matchs[q-1]);                            \
+            clone(temp, matchs[q-1]);                           \
             shiftI(temp);                                       \
             andI(match, temp);                                  \
             andI(match, old);                                   \
@@ -237,52 +218,40 @@ struct WuManber: ShiftOr {
         dist = err;
     }
 
-    void search(Parser* parser) override {
+    int search(std::string s) override {
 
         const int size1 = size - 1;
         const int dstSize = dist + 1;
         const int buf = size * sizeof(ull);
-        const int flagCount = !parser->count;
         const int clrSize = dstSize * size * sizeof(ull);
         ull matchs[dstSize][size];
         ull olds[dstSize][size];
         ull temp[size];
 
-        while(parser->has_next_line()) {
-            std::string s = parser->next_line();
-            int counter = 0;
-
-            memset(matchs, -1, clrSize);
-            for(int i=1 ; i<dstSize ; i++) {
-                matchs[i][size1] = -2;
-            }
+        memset(matchs, -1, clrSize);
+        for(int i=1 ; i<dstSize ; i++) {
+            matchs[i][size1] <<= i;
+        }
+        
+        for(char c : s) {
             
-            for(char c : s) {
-                
-                ull* match = compute(c, matchs, olds, temp, buf, dist, dstSize);
-
-                if(~match[0] & test) {
-                    counter++;
-                    if(flagCount){
-                        break;
-                    }
-                }
-            }
-
-            ull* match = compute('\n', matchs, olds, temp, buf, dist, dstSize);
+            ull* match = compute(c, matchs, olds, temp, buf, dist, dstSize);
 
             if(~match[0] & test) {
-                counter++;
-            }
-
-            if(counter) {
-                add_answer(s, counter);
+                return 1;
             }
         }
-    }
 
+        ull* match = compute('\n', matchs, olds, temp, buf, dist, dstSize);
+
+        if(~match[0] & test) {
+            return 1;
+        }
+
+        return 0;
+    }
 };
 
 // struct AhoCorasick: Search{
-
+//
 // };
