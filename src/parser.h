@@ -101,6 +101,7 @@ struct Parser {
         }
         file = new std::ifstream();
         file->open(filenames.front());
+        if(!file->is_open())file = NULL;
         filenames.pop();
         return true;
     }
