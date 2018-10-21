@@ -11,7 +11,7 @@ path = "data/"
 file = "english"
 pattern = english
 
-for algo in ["ShiftOr", "WuManber", "Ukkonen"]:
+for algo in ["ShiftOr", "WuManber", "Ukkonen", "AhoCorasik"]:
 	for bgn, end, stp in [(1, 10, 1), (10, 50, 5), (50, 101, 10)]:
 		for size in range(bgn, end, stp):
 			print("- - - - - - - - - - - ")
