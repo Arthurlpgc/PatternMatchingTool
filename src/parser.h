@@ -62,10 +62,19 @@ struct Parser {
             while(!pattern_file->eof()) {
                 getline(*pattern_file, pattern);
                 patts.push_back(pattern);
+                if(pattern.length() <= edit_distance) {
+                    error = 3;
+                    return;
+                }
             }
             pattern_file->close();
         } else if (ind != argc) {
-            patts.push_back(std::string(argv[ind++]));
+            std::string pattern = std::string(argv[ind++]);
+            patts.push_back(pattern);
+            if(pattern.length() <= edit_distance) {
+                error = 3;
+                return;
+            }
         } else {
             error = 1;
             return;

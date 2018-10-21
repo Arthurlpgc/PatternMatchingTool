@@ -14,6 +14,9 @@ int main(int argc, char* argv[]) {
     } else if(parser.error == 2) {
         std::cerr << "Pattern file not found" << std::endl;
         return -1;
+    } else if(parser.error == 3) {
+        std::cerr << "Edit distance error should be less than the pattern size" << std::endl;
+        return -1;
     } else if (parser.help) {
         //TODO
     } else {
