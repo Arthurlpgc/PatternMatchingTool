@@ -7,8 +7,6 @@
 #include <set>
 #include <map>
 
-#include <iostream>
-
 struct Search {
     virtual void setPattern(std::string s, int err = 0) = 0;
     virtual int search(std::string s) = 0;
