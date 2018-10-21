@@ -26,6 +26,14 @@ int main(int argc, char* argv[]) {
         return -1;
     }  else {
         std::list<Search*> searchs;
+        if(parser.algorithm == "None") {
+            if(parser.edit_distance) {
+                parser.algorithm = "Ukkonen";
+            } else {
+                if(parser.patts.size() > 1 || parser.patts.[0].size() > 64) parser.algorithm = "AhoCorasik";
+                else parser.algorithm = "ShiftOr";
+            }
+        }
         if (parser.algorithm == "AhoCorasik") {
             Search* search = new AhoCorasik();
             for(auto pattern: parser.patts) {
@@ -35,7 +43,7 @@ int main(int argc, char* argv[]) {
         } else{
             for(auto pattern: parser.patts) {
                 Search* search;
-                if(parser.algorithm == "None" || parser.algorithm == "Ukkonen"){
+                if(parser.algorithm == "Ukkonen"){
                     search = new Ukkonen();
                 } else if (parser.algorithm == "AhoCorasik") {
                     search = new AhoCorasik();
