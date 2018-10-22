@@ -24,6 +24,7 @@ struct Parser {
     std::string buffer;
     bool help = false;
     bool line = true;
+    bool dist = false;
     int error = 0;
     
     Parser(int argc, char** argv) {
@@ -37,6 +38,7 @@ struct Parser {
                     break;
                 case 'e':
                     edit_distance = std::stoi(optarg);
+                    dist = true;
                     break;
                 case 'p':
                     pattern_file_path = std::string(optarg);
@@ -69,7 +71,7 @@ struct Parser {
             while(!pattern_file->eof()) {
                 getline(*pattern_file, pattern);
                 patts.push_back(pattern);
-                if(pattern.length() <= edit_distance) {
+                if(dist && pattern.length() <= edit_distance) {
                     error = 3;
                     return;
                 }
@@ -78,7 +80,7 @@ struct Parser {
         } else if (ind != argc) {
             std::string pattern = std::string(argv[ind++]);
             patts.push_back(pattern);
-            if(pattern.length() <= edit_distance) {
+            if(dist && pattern.length() <= edit_distance) {
                 error = 3;
                 return;
             }
