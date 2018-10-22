@@ -72,19 +72,19 @@ struct Ukkonen: Search {
     inline int searchLine(const std::string& s) {
         int state = 1, occ = 0;
         if(F.count(state)){
-            occ++;
+            return 1;
         }
         for(unsigned char c: s){
             state = delta[c][state];
             if(F.count(state)){
-                occ++;
+                return 1;
             }
         }
         state = delta[0][state];
         if(F.count(state)){
-            occ++;
+            return 1;
         }
-        return occ;
+        return 0;
     }
 
     int search(std::string s) override {

@@ -30,8 +30,7 @@ int main(int argc, char* argv[]) {
             if(parser.edit_distance) {
                 parser.algorithm = "Ukkonen";
             } else {
-                if(parser.patts.size() > 1 || parser.patts[0].size() > 64) parser.algorithm = "AhoCorasik";
-                else parser.algorithm = "ShiftOr";
+                parser.algorithm = "AhoCorasik";
             }
         }
         if (parser.algorithm == "AhoCorasik") {
