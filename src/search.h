@@ -250,7 +250,7 @@ struct WuManber: ShiftOr {
     }
 };
 
-struct AhoCorasik: Search {
+struct AhoCorasick: Search {
     std::vector<int> fail, word;
     std::vector<std::vector<int> > transition;
     bool ready = true;

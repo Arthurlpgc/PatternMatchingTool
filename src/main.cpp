@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 
     if (parser.help) {
         std::cout << "Usage: pmt [options] [pattern] file [file...]\n\nOptions:\n";
-        std::cout << "  -a, --algorithm ALGORITHM     Sets the algorithm to be used(can be Ukkonen, AhoCorasik, ShiftOr or WuMamber)\n";
+        std::cout << "  -a, --algorithm ALGORITHM     Sets the algorithm to be used(can be Ukkonen, AhoCorasick, ShiftOr or WuMamber)\n";
         std::cout << "  -c, --count                   Displays the number of lines each pattern occurs\n";
         std::cout << "  -e, --edit DISTANCE           Tries to find approximate matches with at most the edit distance given, if the algorithm doesnt support, it will be ignored\n";
         std::cout << "  -h, --help                    Shows this guide\n";
@@ -27,14 +27,17 @@ int main(int argc, char* argv[]) {
     }  else {
         std::list<Search*> searchs;
         if(parser.algorithm == "None") {
-            if(parser.edit_distance) {
+            int diff = parser.patts.front().length()/3;
+            if(parser.edit_distance and parser.edit_distance <= diff) {
                 parser.algorithm = "Ukkonen";
+            } else if(parser.edit_distance > diff) {
+                parser.algorithm = "WuManber";
             } else {
-                parser.algorithm = "AhoCorasik";
+                parser.algorithm = "AhoCorasick";
             }
         }
-        if (parser.algorithm == "AhoCorasik") {
-            Search* search = new AhoCorasik();
+        if (parser.algorithm == "AhoCorasick") {
+            Search* search = new AhoCorasick();
             for(auto pattern: parser.patts) {
                 search->setPattern(pattern, parser.edit_distance);
             }
@@ -44,8 +47,8 @@ int main(int argc, char* argv[]) {
                 Search* search;
                 if(parser.algorithm == "Ukkonen"){
                     search = new Ukkonen();
-                } else if (parser.algorithm == "AhoCorasik") {
-                    search = new AhoCorasik();
+                } else if (parser.algorithm == "AhoCorasick") {
+                    search = new AhoCorasick();
                 } else if (parser.algorithm == "WuManber") {
                     search = new WuManber();
                 } else if (parser.algorithm == "ShiftOr") {
